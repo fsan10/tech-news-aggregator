@@ -6,513 +6,133 @@
     <title>科技资讯聚合器 | Tech News Aggregator</title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #10b981;
-            --bg-dark: #0f172a;
-            --bg-card: #1e293b;
-            --bg-card-hover: #334155;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --border: #334155;
-            --ai-color: #8b5cf6;
-            --semiconductor-color: #3b82f6;
-            --energy-color: #10b981;
-            --other-color: #64748b;
+            --primary: #6366f1; --primary-dark: #4f46e5; --secondary: #10b981;
+            --bg-dark: #0f172a; --bg-card: #1e293b; --bg-card-hover: #334155;
+            --text-primary: #f1f5f9; --text-secondary: #94a3b8; --border: #334155;
+            --ai-color: #8b5cf6; --semiconductor-color: #3b82f6;
+            --energy-color: #10b981; --other-color: #64748b; --danger: #ef4444;
         }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-dark); color: var(--text-primary); min-height: 100vh; line-height: 1.6; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            min-height: 100vh;
-            line-height: 1.6;
-        }
+        .header { background: linear-gradient(135deg, var(--bg-card), var(--bg-dark)); border-bottom: 1px solid var(--border); padding: 1rem 2rem; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .logo { display: flex; align-items: center; gap: 0.75rem; }
+        .logo i { font-size: 2rem; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo h1 { font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, var(--text-primary), var(--text-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-dark) 100%);
-            border-bottom: 1px solid var(--border);
-            padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-        }
-
-        .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .logo i {
-            font-size: 2rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .logo h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Controls */
-        .controls {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .category-filters {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            padding: 0.5rem 1rem;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            color: var(--text-secondary);
-            border-radius: 2rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .filter-btn:hover {
-            border-color: var(--primary);
-            color: var(--text-primary);
-        }
-
-        .filter-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-        }
-
+        .controls { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+        .category-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .filter-btn { padding: 0.5rem 1rem; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-secondary); border-radius: 2rem; cursor: pointer; transition: all 0.2s; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; }
+        .filter-btn:hover { border-color: var(--primary); color: var(--text-primary); }
+        .filter-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
         .filter-btn[data-category="ai"].active { background: var(--ai-color); border-color: var(--ai-color); }
         .filter-btn[data-category="semiconductor"].active { background: var(--semiconductor-color); border-color: var(--semiconductor-color); }
         .filter-btn[data-category="energy"].active { background: var(--energy-color); border-color: var(--energy-color); }
 
-        .model-selector {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+        .ai-settings-btn { padding: 0.5rem 1rem; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-secondary); border-radius: 0.5rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; transition: all 0.2s; }
+        .ai-settings-btn:hover { border-color: var(--secondary); color: var(--secondary); }
+        .ai-settings-btn .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
+        .ai-settings-btn .status-dot.active { background: var(--secondary); }
 
-        .model-selector label {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            white-space: nowrap;
-        }
+        .refresh-controls { display: flex; align-items: center; gap: 0.75rem; }
+        .auto-refresh-toggle { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--text-secondary); }
+        .toggle-switch { position: relative; width: 44px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border); transition: 0.3s; border-radius: 24px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: 0.3s; border-radius: 50%; }
+        .toggle-switch input:checked + .toggle-slider { background-color: var(--primary); }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+        .refresh-interval { padding: 0.4rem 0.75rem; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-primary); border-radius: 0.5rem; font-size: 0.875rem; }
+        .refresh-btn { padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: 0.5rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; transition: all 0.2s; }
+        .refresh-btn:hover { background: var(--primary-dark); }
+        .refresh-btn.loading i { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        .model-select {
-            padding: 0.4rem 0.75rem;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border-radius: 0.5rem;
-            font-size: 0.8rem;
-            cursor: pointer;
-            min-width: 140px;
-        }
+        .main { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        .status-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; color: var(--text-secondary); font-size: 0.875rem; }
+        .last-update { display: flex; align-items: center; gap: 0.5rem; }
+        .article-count { background: var(--bg-card); padding: 0.25rem 0.75rem; border-radius: 1rem; }
 
-        .model-select:focus {
-            border-color: var(--primary);
-            outline: none;
-        }
+        .articles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; }
+        .article-card { background: var(--bg-card); border-radius: 1rem; overflow: hidden; transition: all 0.3s; border: 1px solid var(--border); }
+        .article-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 10px 40px rgba(99,102,241,0.1); }
+        .article-header { padding: 1.25rem; border-bottom: 1px solid var(--border); }
+        .article-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.75rem; }
+        .article-source { display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); }
+        .article-source.foreign { color: var(--secondary); }
+        .article-category { padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.7rem; font-weight: 500; }
+        .article-category[data-category="ai"] { background: rgba(139,92,246,0.2); color: var(--ai-color); }
+        .article-category[data-category="semiconductor"] { background: rgba(59,130,246,0.2); color: var(--semiconductor-color); }
+        .article-category[data-category="energy"] { background: rgba(16,185,129,0.2); color: var(--energy-color); }
+        .article-category[data-category="other"] { background: rgba(100,116,139,0.2); color: var(--other-color); }
+        .article-title { font-size: 1.1rem; font-weight: 600; line-height: 1.4; color: var(--text-primary); margin-bottom: 0.5rem; }
+        .article-title a { color: inherit; text-decoration: none; }
+        .article-title a:hover { color: var(--primary); }
+        .translated-title { font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border); }
+        .article-body { padding: 1.25rem; }
+        .article-summary { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1rem; }
+        .key-points { background: rgba(99,102,241,0.1); border-radius: 0.5rem; padding: 0.75rem 1rem; }
+        .key-points-title { font-size: 0.75rem; color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .key-points-list { list-style: none; font-size: 0.85rem; color: var(--text-secondary); }
+        .key-points-list li { padding: 0.25rem 0; padding-left: 1rem; position: relative; }
+        .key-points-list li::before { content: "•"; position: absolute; left: 0; color: var(--primary); }
+        .article-footer { padding: 1rem 1.25rem; background: rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; }
+        .article-time { font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; }
+        .read-more { font-size: 0.8rem; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 0.25rem; }
+        .read-more:hover { text-decoration: underline; }
 
-        .refresh-controls {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
+        .loading-state { text-align: center; padding: 4rem 2rem; color: var(--text-secondary); }
+        .loading-state i { font-size: 3rem; margin-bottom: 1rem; color: var(--primary); animation: pulse 2s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-secondary); }
+        .empty-state i { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
+        .error-state { text-align: center; padding: 2rem; background: rgba(239,68,68,0.1); border-radius: 1rem; color: #ef4444; }
 
-        .auto-refresh-toggle {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay.show { display: flex; }
+        .modal { background: var(--bg-card); border-radius: 1rem; width: 90%; max-width: 600px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
+        .modal-header { padding: 1.25rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { font-size: 1.25rem; }
+        .modal-close { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.5rem; }
+        .modal-close:hover { color: var(--text-primary); }
+        .modal-body { padding: 1.25rem; overflow-y: auto; flex: 1; }
 
-        .toggle-switch {
-            position: relative;
-            width: 44px;
-            height: 24px;
-        }
+        .config-list { margin-bottom: 1.5rem; }
+        .config-item { background: var(--bg-dark); border-radius: 0.75rem; padding: 1rem; margin-bottom: 0.75rem; border: 1px solid var(--border); }
+        .config-item.active { border-color: var(--secondary); }
+        .config-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .config-name { font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+        .config-name .badge { background: var(--secondary); color: white; font-size: 0.65rem; padding: 0.15rem 0.5rem; border-radius: 1rem; }
+        .config-details { font-size: 0.8rem; color: var(--text-secondary); }
+        .config-details p { margin: 0.25rem 0; }
+        .config-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+        .btn { padding: 0.4rem 0.75rem; border-radius: 0.5rem; cursor: pointer; font-size: 0.8rem; border: none; transition: all 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border); }
+        .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-danger { background: rgba(239,68,68,0.1); color: var(--danger); }
+        .btn-danger:hover { background: rgba(239,68,68,0.2); }
 
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+        .config-form { background: var(--bg-dark); border-radius: 0.75rem; padding: 1.25rem; border: 1px solid var(--border); }
+        .config-form h3 { font-size: 1rem; margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.4rem; }
+        .form-group input { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-primary); border-radius: 0.5rem; font-size: 0.9rem; }
+        .form-group input:focus { outline: none; border-color: var(--primary); }
+        .form-group small { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; display: block; }
+        .form-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
 
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: var(--border);
-            transition: 0.3s;
-            border-radius: 24px;
-        }
-
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: 0.3s;
-            border-radius: 50%;
-        }
-
-        .toggle-switch input:checked + .toggle-slider {
-            background-color: var(--primary);
-        }
-
-        .toggle-switch input:checked + .toggle-slider:before {
-            transform: translateX(20px);
-        }
-
-        .refresh-interval {
-            padding: 0.4rem 0.75rem;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-        }
-
-        .refresh-btn {
-            padding: 0.5rem 1rem;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
-            transition: all 0.2s;
-        }
-
-        .refresh-btn:hover {
-            background: var(--primary-dark);
-        }
-
-        .refresh-btn.loading i {
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Main Content */
-        .main {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-        }
-
-        .last-update {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .article-count {
-            background: var(--bg-card);
-            padding: 0.25rem 0.75rem;
-            border-radius: 1rem;
-        }
-
-        /* Article Grid */
-        .articles-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .article-card {
-            background: var(--bg-card);
-            border-radius: 1rem;
-            overflow: hidden;
-            transition: all 0.3s;
-            border: 1px solid var(--border);
-        }
-
-        .article-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--primary);
-            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.1);
-        }
-
-        .article-header {
-            padding: 1.25rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .article-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.75rem;
-            font-size: 0.75rem;
-        }
-
-        .article-source {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-secondary);
-        }
-
-        .article-source.foreign {
-            color: var(--secondary);
-        }
-
-        .article-category {
-            padding: 0.25rem 0.75rem;
-            border-radius: 1rem;
-            font-size: 0.7rem;
-            font-weight: 500;
-        }
-
-        .article-category[data-category="ai"] {
-            background: rgba(139, 92, 246, 0.2);
-            color: var(--ai-color);
-        }
-
-        .article-category[data-category="semiconductor"] {
-            background: rgba(59, 130, 246, 0.2);
-            color: var(--semiconductor-color);
-        }
-
-        .article-category[data-category="energy"] {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--energy-color);
-        }
-
-        .article-category[data-category="other"] {
-            background: rgba(100, 116, 139, 0.2);
-            color: var(--other-color);
-        }
-
-        .article-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            line-height: 1.4;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .article-title a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .article-title a:hover {
-            color: var(--primary);
-        }
-
-        .translated-title {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-top: 0.5rem;
-            padding-top: 0.5rem;
-            border-top: 1px dashed var(--border);
-        }
-
-        .article-body {
-            padding: 1.25rem;
-        }
-
-        .article-summary {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-        }
-
-        .key-points {
-            background: rgba(99, 102, 241, 0.1);
-            border-radius: 0.5rem;
-            padding: 0.75rem 1rem;
-        }
-
-        .key-points-title {
-            font-size: 0.75rem;
-            color: var(--primary);
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .key-points-list {
-            list-style: none;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .key-points-list li {
-            padding: 0.25rem 0;
-            padding-left: 1rem;
-            position: relative;
-        }
-
-        .key-points-list li::before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: var(--primary);
-        }
-
-        .article-footer {
-            padding: 1rem 1.25rem;
-            background: rgba(0, 0, 0, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .article-time {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .read-more {
-            font-size: 0.8rem;
-            color: var(--primary);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        .read-more:hover {
-            text-decoration: underline;
-        }
-
-        /* Loading State */
-        .loading-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: var(--text-secondary);
-        }
-
-        .loading-state i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: var(--primary);
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: var(--text-secondary);
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        /* Error State */
-        .error-state {
-            text-align: center;
-            padding: 2rem;
-            background: rgba(239, 68, 68, 0.1);
-            border-radius: 1rem;
-            color: #ef4444;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
-            .header {
-                padding: 1rem;
-            }
-
-            .header-content {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .controls {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .main {
-                padding: 1rem;
-            }
-
-            .articles-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .status-bar {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
-            }
+            .header { padding: 1rem; }
+            .header-content { flex-direction: column; align-items: flex-start; }
+            .controls { width: 100%; justify-content: space-between; }
+            .main { padding: 1rem; }
+            .articles-grid { grid-template-columns: 1fr; }
+            .status-bar { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
         }
     </style>
 </head>
@@ -523,32 +143,18 @@
                 <i class="ri-newspaper-line"></i>
                 <h1>科技资讯聚合器</h1>
             </div>
-            
             <div class="controls">
                 <div class="category-filters">
-                    <button class="filter-btn active" data-category="all">
-                        <i class="ri-apps-line"></i> 全部
-                    </button>
-                    <button class="filter-btn" data-category="ai">
-                        <i class="ri-robot-line"></i> AI
-                    </button>
-                    <button class="filter-btn" data-category="semiconductor">
-                        <i class="ri-cpu-line"></i> 半导体
-                    </button>
-                    <button class="filter-btn" data-category="energy">
-                        <i class="ri-flashlight-line"></i> 新能源
-                    </button>
+                    <button class="filter-btn active" data-category="all"><i class="ri-apps-line"></i> 全部</button>
+                    <button class="filter-btn" data-category="ai"><i class="ri-robot-line"></i> AI</button>
+                    <button class="filter-btn" data-category="semiconductor"><i class="ri-cpu-line"></i> 半导体</button>
+                    <button class="filter-btn" data-category="energy"><i class="ri-flashlight-line"></i> 新能源</button>
                 </div>
-                
-                <div class="model-selector">
-                    <label><i class="ri-brain-line"></i> AI模型</label>
-                    <select class="model-select" id="modelSelect">
-                        <option value="qwen3.5-flash">通义千问3.5 Flash</option>
-                        <option value="qwen3.6-plus">通义千问3.6 Plus</option>
-                        <option value="kimi-k2.6">Kimi K2.6</option>
-                    </select>
-                </div>
-
+                <button class="ai-settings-btn" id="aiSettingsBtn">
+                    <span class="status-dot" id="aiStatusDot"></span>
+                    <i class="ri-settings-3-line"></i>
+                    <span>AI配置</span>
+                </button>
                 <div class="refresh-controls">
                     <label class="auto-refresh-toggle">
                         <div class="toggle-switch">
@@ -557,17 +163,13 @@
                         </div>
                         自动刷新
                     </label>
-                    
                     <select class="refresh-interval" id="refreshInterval">
                         <option value="1800000">30分钟</option>
                         <option value="3600000" selected>1小时</option>
                         <option value="7200000">2小时</option>
                         <option value="10800000">3小时</option>
                     </select>
-                    
-                    <button class="refresh-btn" id="refreshBtn">
-                        <i class="ri-refresh-line"></i> 刷新
-                    </button>
+                    <button class="refresh-btn" id="refreshBtn"><i class="ri-refresh-line"></i> 刷新</button>
                 </div>
             </div>
         </div>
@@ -575,34 +177,63 @@
 
     <main class="main">
         <div class="status-bar">
-            <div class="last-update">
-                <i class="ri-time-line"></i>
-                <span>上次更新: <span id="lastUpdate">--</span></span>
-            </div>
-            <div class="article-count">
-                共 <span id="articleCount">0</span> 条资讯
-            </div>
+            <div class="last-update"><i class="ri-time-line"></i><span>上次更新: <span id="lastUpdate">--</span></span></div>
+            <div class="article-count">共 <span id="articleCount">0</span> 条资讯</div>
         </div>
-
         <div id="articlesContainer" class="articles-grid">
-            <div class="loading-state">
-                <i class="ri-loader-4-line"></i>
-                <p>正在加载科技资讯...</p>
-            </div>
+            <div class="loading-state"><i class="ri-loader-4-line"></i><p>正在加载科技资讯...</p></div>
         </div>
     </main>
 
+    <!-- AI配置弹窗 -->
+    <div class="modal-overlay" id="aiConfigModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="ri-robot-line"></i> AI翻译服务配置</h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-list" id="configList"></div>
+                <div class="config-form">
+                    <h3 id="formTitle">添加新配置</h3>
+                    <form id="configForm">
+                        <input type="hidden" id="editConfigId">
+                        <div class="form-group">
+                            <label>配置名称</label>
+                            <input type="text" id="configName" placeholder="如：百炼通义" required>
+                        </div>
+                        <div class="form-group">
+                            <label>API端点 (Base URL)</label>
+                            <input type="url" id="configBaseUrl" placeholder="https://dashscope.aliyuncs.com/compatible-mode/v1" required>
+                            <small>OpenAI兼容接口的API地址，不同服务商格式不同</small>
+                        </div>
+                        <div class="form-group">
+                            <label>API Key</label>
+                            <input type="password" id="configApiKey" placeholder="sk-..." required>
+                            <small>您的AI服务API密钥</small>
+                        </div>
+                        <div class="form-group">
+                            <label>模型名称</label>
+                            <input type="text" id="configModel" placeholder="qwen-plus, gpt-4o-mini 等" required>
+                            <small>填写要使用的模型标识符</small>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="cancelEdit" style="display:none">取消编辑</button>
+                            <button type="submit" class="btn btn-primary" id="submitConfig">添加配置</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // 状态管理
         const state = {
-            articles: [],
-            currentCategory: 'all',
-            autoRefresh: false,
-            refreshInterval: 3600000, // 默认1小时
-            refreshTimer: null
+            articles: [], currentCategory: 'all',
+            autoRefresh: false, refreshInterval: 3600000, refreshTimer: null,
+            aiConfigs: [], currentConfigId: null
         };
 
-        // DOM元素
         const elements = {
             articlesContainer: document.getElementById('articlesContainer'),
             lastUpdate: document.getElementById('lastUpdate'),
@@ -610,74 +241,38 @@
             refreshBtn: document.getElementById('refreshBtn'),
             autoRefreshToggle: document.getElementById('autoRefresh'),
             refreshIntervalSelect: document.getElementById('refreshInterval'),
-            modelSelect: document.getElementById('modelSelect'),
-            filterBtns: document.querySelectorAll('.filter-btn')
+            filterBtns: document.querySelectorAll('.filter-btn'),
+            aiSettingsBtn: document.getElementById('aiSettingsBtn'),
+            aiStatusDot: document.getElementById('aiStatusDot'),
+            aiConfigModal: document.getElementById('aiConfigModal'),
+            closeModal: document.getElementById('closeModal'),
+            configList: document.getElementById('configList'),
+            configForm: document.getElementById('configForm'),
+            formTitle: document.getElementById('formTitle'),
+            submitConfig: document.getElementById('submitConfig'),
+            cancelEdit: document.getElementById('cancelEdit'),
+            editConfigId: document.getElementById('editConfigId'),
+            configName: document.getElementById('configName'),
+            configBaseUrl: document.getElementById('configBaseUrl'),
+            configApiKey: document.getElementById('configApiKey'),
+            configModel: document.getElementById('configModel')
         };
 
-        // 模型切换
-        async function switchModel(modelId) {
-            try {
-                const response = await fetch('/api/models', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ model_id: modelId })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    console.log('模型已切换:', data.current_model);
-                    // 切换模型后自动刷新数据
-                    fetchArticles(state.currentCategory, true);
-                }
-            } catch (error) {
-                console.error('切换模型失败:', error);
-            }
-        }
-
-        // 初始化时获取当前模型
-        async function initModel() {
-            try {
-                const response = await fetch('/api/models');
-                const data = await response.json();
-                if (data.success && data.data.current) {
-                    elements.modelSelect.value = data.data.current;
-                }
-            } catch (error) {
-                console.error('获取模型列表失败:', error);
-            }
-        }
-
-        // 模型选择事件
-        elements.modelSelect.addEventListener('change', (e) => {
-            switchModel(e.target.value);
-        });
-
-        // API调用
         async function fetchArticles(category = 'all', refresh = false) {
             try {
                 elements.refreshBtn.classList.add('loading');
-                
                 let url = '/api/articles';
                 const params = new URLSearchParams();
-                if (category !== 'all') {
-                    params.append('category', category);
-                }
-                if (refresh) {
-                    params.append('refresh', 'true');
-                }
-                if (params.toString()) {
-                    url += '?' + params.toString();
-                }
-
+                if (category !== 'all') params.append('category', category);
+                if (refresh) params.append('refresh', 'true');
+                if (params.toString()) url += '?' + params.toString();
                 const response = await fetch(url);
                 const data = await response.json();
-
                 if (data.success) {
                     state.articles = data.data;
                     elements.lastUpdate.textContent = data.last_update;
                     renderArticles();
-                } else {
-                    showError('获取数据失败');
-                }
+                } else { showError('获取数据失败'); }
             } catch (error) {
                 console.error('获取文章失败:', error);
                 showError('网络错误，请稍后重试');
@@ -686,96 +281,27 @@
             }
         }
 
-        // 渲染文章列表
         function renderArticles() {
-            const articles = state.currentCategory === 'all' 
-                ? state.articles 
-                : state.articles.filter(a => a.category === state.currentCategory);
-
+            const articles = state.currentCategory === 'all' ? state.articles : state.articles.filter(a => a.category === state.currentCategory);
             elements.articleCount.textContent = articles.length;
-
             if (articles.length === 0) {
-                elements.articlesContainer.innerHTML = `
-                    <div class="empty-state">
-                        <i class="ri-file-list-3-line"></i>
-                        <p>暂无相关资讯</p>
-                    </div>
-                `;
+                elements.articlesContainer.innerHTML = '<div class="empty-state"><i class="ri-file-list-3-line"></i><p>暂无相关资讯</p></div>';
                 return;
             }
-
             elements.articlesContainer.innerHTML = articles.map(article => createArticleCard(article)).join('');
         }
 
-        // 创建文章卡片HTML
         function createArticleCard(article) {
-            const categoryNames = {
-                'ai': 'AI人工智能',
-                'semiconductor': '半导体',
-                'energy': '新能源',
-                'other': '其他科技'
-            };
-
+            const categoryNames = { 'ai': 'AI人工智能', 'semiconductor': '半导体', 'energy': '新能源', 'other': '其他科技' };
             const isForeign = article.is_foreign;
-            const title = isForeign && article.translated_title 
-                ? article.translated_title 
-                : article.title;
-            const originalTitle = isForeign && article.translated_title && article.translated_title !== article.title
-                ? `<div class="translated-title">原标题: ${article.title}</div>`
-                : '';
-
-            const keyPoints = article.key_points && article.key_points.length > 0
-                ? `<div class="key-points">
-                    <div class="key-points-title"><i class="ri-lightbulb-line"></i> 关键要点</div>
-                    <ul class="key-points-list">
-                        ${article.key_points.map(point => `<li>${point}</li>`).join('')}
-                    </ul>
-                </div>`
-                : '';
-
-            return `
-                <article class="article-card">
-                    <div class="article-header">
-                        <div class="article-meta">
-                            <span class="article-source ${isForeign ? 'foreign' : ''}">
-                                ${isForeign ? '<i class="ri-global-line"></i>' : '<i class="ri-home-line"></i>'}
-                                ${article.source}
-                                ${isForeign ? '<span style="font-size:0.7rem">(已翻译)</span>' : ''}
-                            </span>
-                            <span class="article-category" data-category="${article.category}">
-                                ${categoryNames[article.category] || '其他'}
-                            </span>
-                        </div>
-                        <h2 class="article-title">
-                            <a href="${article.url}" target="_blank" rel="noopener">${title}</a>
-                        </h2>
-                        ${originalTitle}
-                    </div>
-                    <div class="article-body">
-                        <p class="article-summary">${article.chinese_summary || article.summary || '暂无摘要'}</p>
-                        ${keyPoints}
-                    </div>
-                    <div class="article-footer">
-                        <span class="article-time">
-                            <i class="ri-calendar-line"></i>
-                            ${article.publish_time || article.crawl_time}
-                        </span>
-                        <a href="${article.url}" target="_blank" rel="noopener" class="read-more">
-                            阅读原文 <i class="ri-arrow-right-line"></i>
-                        </a>
-                    </div>
-                </article>
-            `;
+            const title = isForeign && article.translated_title ? article.translated_title : article.title;
+            const originalTitle = isForeign && article.translated_title && article.translated_title !== article.title ? '<div class="translated-title">原标题: ' + article.title + '</div>' : '';
+            const keyPoints = article.key_points && article.key_points.length > 0 ? '<div class="key-points"><div class="key-points-title"><i class="ri-lightbulb-line"></i> 关键要点</div><ul class="key-points-list">' + article.key_points.map(p => '<li>' + p + '</li>').join('') + '</ul></div>' : '';
+            return '<article class="article-card"><div class="article-header"><div class="article-meta"><span class="article-source ' + (isForeign ? 'foreign' : '') + '">' + (isForeign ? '<i class="ri-global-line"></i>' : '<i class="ri-home-line"></i>') + article.source + (isForeign ? '<span style="font-size:0.7rem">(已翻译)</span>' : '') + '</span><span class="article-category" data-category="' + article.category + '">' + (categoryNames[article.category] || '其他') + '</span></div><h2 class="article-title"><a href="' + article.url + '" target="_blank" rel="noopener">' + title + '</a></h2>' + originalTitle + '</div><div class="article-body"><p class="article-summary">' + (article.chinese_summary || article.summary || '暂无摘要') + '</p>' + keyPoints + '</div><div class="article-footer"><span class="article-time"><i class="ri-calendar-line"></i>' + (article.publish_time || article.crawl_time) + '</span><a href="' + article.url + '" target="_blank" rel="noopener" class="read-more">阅读原文 <i class="ri-arrow-right-line"></i></a></div></article>';
         }
 
-        // 显示错误
         function showError(message) {
-            elements.articlesContainer.innerHTML = `
-                <div class="error-state">
-                    <i class="ri-error-warning-line"></i>
-                    <p>${message}</p>
-                </div>
-            `;
+            elements.articlesContainer.innerHTML = '<div class="error-state"><i class="ri-error-warning-line"></i><p>' + message + '</p></div>';
         }
 
         // 分类筛选
@@ -788,45 +314,118 @@
             });
         });
 
-        // 手动刷新
-        elements.refreshBtn.addEventListener('click', () => {
-            fetchArticles(state.currentCategory, true);
-        });
-
-        // 自动刷新
-        elements.autoRefreshToggle.addEventListener('change', (e) => {
+        // 刷新
+        elements.refreshBtn.addEventListener('click', () => fetchArticles(state.currentCategory, true));
+        elements.autoRefreshToggle.addEventListener('change', e => {
             state.autoRefresh = e.target.checked;
-            if (state.autoRefresh) {
-                startAutoRefresh();
-            } else {
-                stopAutoRefresh();
-            }
+            state.autoRefresh ? startAutoRefresh() : stopAutoRefresh();
         });
-
-        // 刷新间隔
-        elements.refreshIntervalSelect.addEventListener('change', (e) => {
+        elements.refreshIntervalSelect.addEventListener('change', e => {
             state.refreshInterval = parseInt(e.target.value);
-            if (state.autoRefresh) {
-                stopAutoRefresh();
-                startAutoRefresh();
-            }
+            if (state.autoRefresh) { stopAutoRefresh(); startAutoRefresh(); }
         });
+        function startAutoRefresh() { state.refreshTimer = setInterval(() => fetchArticles(state.currentCategory, true), state.refreshInterval); }
+        function stopAutoRefresh() { if (state.refreshTimer) { clearInterval(state.refreshTimer); state.refreshTimer = null; } }
 
-        function startAutoRefresh() {
-            state.refreshTimer = setInterval(() => {
-                fetchArticles(state.currentCategory, true);
-            }, state.refreshInterval);
+        // AI配置弹窗
+        elements.aiSettingsBtn.addEventListener('click', async () => {
+            await loadAIConfigs();
+            elements.aiConfigModal.classList.add('show');
+        });
+        elements.closeModal.addEventListener('click', () => elements.aiConfigModal.classList.remove('show'));
+        elements.aiConfigModal.addEventListener('click', e => { if (e.target === elements.aiConfigModal) elements.aiConfigModal.classList.remove('show'); });
+        elements.cancelEdit.addEventListener('click', resetForm);
+
+        async function loadAIConfigs() {
+            try {
+                const response = await fetch('/api/ai-configs');
+                const data = await response.json();
+                if (data.success) {
+                    state.aiConfigs = data.data;
+                    renderConfigList();
+                    updateAIStatus();
+                }
+            } catch (error) { console.error('加载配置失败:', error); }
         }
 
-        function stopAutoRefresh() {
-            if (state.refreshTimer) {
-                clearInterval(state.refreshTimer);
-                state.refreshTimer = null;
+        function renderConfigList() {
+            if (state.aiConfigs.length === 0) {
+                elements.configList.innerHTML = '<div class="empty-state"><i class="ri-information-line"></i><p>暂无AI配置，请添加</p></div>';
+                return;
             }
+            elements.configList.innerHTML = state.aiConfigs.map(c => '<div class="config-item ' + (c.is_active ? 'active' : '') + '"><div class="config-item-header"><span class="config-name">' + c.name + (c.is_active ? '<span class="badge">使用中</span>' : '') + '</span></div><div class="config-details"><p><strong>端点:</strong> ' + c.base_url + '</p><p><strong>模型:</strong> ' + c.model + '</p></div><div class="config-actions">' + (c.is_active ? '' : '<button class="btn btn-primary" onclick="activateConfig(\'' + c.id + '\')">激活</button>') + '<button class="btn btn-secondary" onclick="editConfig(\'' + c.id + '\')">编辑</button>' + (c.id !== 'default' ? '<button class="btn btn-danger" onclick="deleteConfig(\'' + c.id + '\')">删除</button>' : '') + '</div></div>').join('');
         }
+
+        function updateAIStatus() {
+            const hasConfig = state.aiConfigs.some(c => c.is_active);
+            elements.aiStatusDot.className = 'status-dot ' + (hasConfig ? 'active' : '');
+        }
+
+        function resetForm() {
+            elements.configForm.reset();
+            elements.editConfigId.value = '';
+            elements.formTitle.textContent = '添加新配置';
+            elements.submitConfig.textContent = '添加配置';
+            elements.cancelEdit.style.display = 'none';
+        }
+
+        window.activateConfig = async function(configId) {
+            try {
+                const response = await fetch('/api/ai-configs/' + configId + '/activate', { method: 'POST' });
+                const data = await response.json();
+                if (data.success) { await loadAIConfigs(); fetchArticles(state.currentCategory, true); }
+            } catch (error) { console.error('激活配置失败:', error); }
+        };
+
+        window.editConfig = function(configId) {
+            const config = state.aiConfigs.find(c => c.id === configId);
+            if (!config) return;
+            elements.editConfigId.value = configId;
+            elements.configName.value = config.name;
+            elements.configBaseUrl.value = config.base_url;
+            elements.configApiKey.value = '';
+            elements.configModel.value = config.model;
+            elements.formTitle.textContent = '编辑配置';
+            elements.submitConfig.textContent = '保存修改';
+            elements.cancelEdit.style.display = 'inline-block';
+        };
+
+        window.deleteConfig = async function(configId) {
+            if (!confirm('确定要删除这个配置吗？')) return;
+            try {
+                const response = await fetch('/api/ai-configs/' + configId, { method: 'DELETE' });
+                const data = await response.json();
+                if (data.success) { await loadAIConfigs(); } else { alert(data.message); }
+            } catch (error) { console.error('删除配置失败:', error); }
+        };
+
+        elements.configForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const editId = elements.editConfigId.value;
+            const payload = {
+                name: elements.configName.value.trim(),
+                base_url: elements.configBaseUrl.value.trim(),
+                api_key: elements.configApiKey.value.trim(),
+                model: elements.configModel.value.trim()
+            };
+            if (!payload.name || !payload.base_url || !payload.api_key || !payload.model) { alert('所有字段都不能为空'); return; }
+            try {
+                let response, data;
+                if (editId) {
+                    response = await fetch('/api/ai-configs/' + editId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                } else {
+                    response = await fetch('/api/ai-configs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                }
+                data = await response.json();
+                if (data.success) {
+                    resetForm();
+                    await loadAIConfigs();
+                    await activateConfig(data.data.id);
+                } else { alert(data.message); }
+            } catch (error) { console.error('保存配置失败:', error); alert('保存失败'); }
+        });
 
         // 初始化
-        initModel();
         fetchArticles();
     </script>
 </body>

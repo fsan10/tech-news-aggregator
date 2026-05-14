@@ -15,7 +15,7 @@ from crawlers.theverge_crawler import TheVergeCrawler
 from crawlers.mit_crawler import MITTechReviewCrawler
 
 # 导入翻译服务
-from services.translator import AITranslator, AVAILABLE_MODELS
+from services.translator import AITranslator
 
 app = Flask(__name__)
 CORS(app)
@@ -36,7 +36,7 @@ translator = AITranslator()
 cache = {
     'articles': [],
     'last_update': None,
-    'expires_seconds': 3600  # 1小时缓存
+    'expires_seconds': 3600
 }
 
 
@@ -51,18 +51,15 @@ def get_all_articles(categories: List[str] = None, max_per_source: int = 10) -> 
         except Exception as e:
             print(f"[{name}] 爬取失败: {e}")
 
-    # 按分类筛选
     if categories and 'all' not in categories:
         all_articles = [a for a in all_articles if a.get('category') in categories]
 
-    # 按时间排序（最新的在前）
     all_articles.sort(key=lambda x: x.get('crawl_time', ''), reverse=True)
-
     return all_articles
 
 
-def process_foreign_articles(articles: List[Dict]) -> List[Dict]:
-    """处理国外文章 - 翻译和总结"""
+def process_articles(articles: List[Dict]) -> List[Dict]:
+    """处理文章 - AI翻译和总结"""
     for article in articles:
         if article.get('is_foreign'):
             result = translator.translate_and_summarize(
@@ -80,7 +77,6 @@ def process_foreign_articles(articles: List[Dict]) -> List[Dict]:
             )
             article['chinese_summary'] = result.get('summary', article.get('summary', ''))
             article['key_points'] = result.get('key_points', [])
-
     return articles
 
 
@@ -88,13 +84,11 @@ def process_foreign_articles(articles: List[Dict]) -> List[Dict]:
 
 @app.route('/')
 def index():
-    """主页"""
     return render_template('index.html')
 
 
 @app.route('/api/articles', methods=['GET'])
 def get_articles():
-    """获取文章列表API"""
     categories = request.args.getlist('category')
     if not categories:
         categories = ['all']
@@ -102,7 +96,6 @@ def get_articles():
     use_cache = request.args.get('cache', 'true').lower() == 'true'
     refresh = request.args.get('refresh', 'false').lower() == 'true'
 
-    # 检查缓存
     now = datetime.now()
     if use_cache and cache['articles'] and cache['last_update']:
         elapsed = (now - cache['last_update']).total_seconds()
@@ -117,13 +110,9 @@ def get_articles():
                 'last_update': cache['last_update'].strftime('%Y-%m-%d %H:%M:%S')
             })
 
-    # 获取新数据
     articles = get_all_articles(categories=categories if 'all' not in categories else None)
+    articles = process_articles(articles)
 
-    # AI处理
-    articles = process_foreign_articles(articles)
-
-    # 更新缓存
     cache['articles'] = articles
     cache['last_update'] = now
 
@@ -135,48 +124,89 @@ def get_articles():
     })
 
 
-@app.route('/api/models', methods=['GET'])
-def get_models():
-    """获取可用模型列表"""
-    current_model = translator.model
+# ==================== AI配置管理 API ====================
+
+@app.route('/api/ai-configs', methods=['GET'])
+def get_ai_configs():
+    """获取所有AI配置"""
     return jsonify({
         'success': True,
-        'data': {
-            'models': AVAILABLE_MODELS,
-            'current': current_model
-        }
+        'data': translator.config_manager.get_all_configs()
     })
 
 
-@app.route('/api/models', methods=['POST'])
-def switch_model():
-    """切换AI模型"""
+@app.route('/api/ai-configs', methods=['POST'])
+def add_ai_config():
+    """添加AI配置"""
     data = request.get_json() or {}
-    model_id = data.get('model_id', '')
+    name = data.get('name', '').strip()
+    api_key = data.get('api_key', '').strip()
+    base_url = data.get('base_url', '').strip()
+    model = data.get('model', '').strip()
 
-    # 验证模型ID
-    valid_ids = [m['id'] for m in AVAILABLE_MODELS]
-    if model_id not in valid_ids:
-        return jsonify({
-            'success': False,
-            'message': f'无效的模型ID，可选: {valid_ids}'
-        }), 400
+    if not all([name, api_key, base_url, model]):
+        return jsonify({'success': False, 'message': '所有字段都不能为空'}), 400
 
-    translator.set_model(model_id)
-    # 切换模型后清空缓存，下次请求会用新模型重新处理
-    cache['articles'] = []
-    cache['last_update'] = None
+    try:
+        result = translator.config_manager.add_config(name, api_key, base_url, model)
+        translator.reload_config()
+        return jsonify({'success': True, 'data': result})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
-    return jsonify({
-        'success': True,
-        'message': f'已切换到模型: {model_id}',
-        'current_model': model_id
-    })
 
+@app.route('/api/ai-configs/<config_id>', methods=['PUT'])
+def update_ai_config(config_id):
+    """更新AI配置"""
+    data = request.get_json() or {}
+    try:
+        success = translator.config_manager.update_config(
+            config_id,
+            name=data.get('name'),
+            api_key=data.get('api_key'),
+            base_url=data.get('base_url'),
+            model=data.get('model')
+        )
+        if success:
+            translator.reload_config()
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': '配置不存在'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/ai-configs/<config_id>', methods=['DELETE'])
+def delete_ai_config(config_id):
+    """删除AI配置"""
+    try:
+        success = translator.config_manager.delete_config(config_id)
+        if success:
+            translator.reload_config()
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': '无法删除默认配置或配置不存在'}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/ai-configs/<config_id>/activate', methods=['POST'])
+def activate_ai_config(config_id):
+    """激活AI配置"""
+    try:
+        success = translator.config_manager.switch_config(config_id)
+        if success:
+            translator.reload_config()
+            cache['articles'] = []  # 清空缓存
+            cache['last_update'] = None
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': '配置不存在'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+# ==================== 其他API ====================
 
 @app.route('/api/sources', methods=['GET'])
 def get_sources():
-    """获取数据源列表"""
     sources = [
         {'id': 'leiphone', 'name': '雷锋网', 'url': 'https://www.leiphone.com', 'is_foreign': False},
         {'id': '36kr', 'name': '36氪', 'url': 'https://36kr.com', 'is_foreign': False},
@@ -189,7 +219,6 @@ def get_sources():
 
 @app.route('/api/categories', methods=['GET'])
 def get_categories():
-    """获取分类列表"""
     categories = [
         {'id': 'ai', 'name': 'AI人工智能', 'icon': '🤖'},
         {'id': 'semiconductor', 'name': '半导体', 'icon': '💻'},
@@ -201,12 +230,13 @@ def get_categories():
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    """健康检查"""
+    active_config = translator.config_manager.get_active_config()
     return jsonify({
         'success': True,
         'message': 'Tech News Aggregator is running',
         'ai_configured': translator.is_configured(),
-        'current_model': translator.model
+        'current_model': translator.get_current_model(),
+        'has_default_config': len(translator.config_manager.configs) > 0
     })
 
 
